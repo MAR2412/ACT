@@ -1,0 +1,367 @@
+ /* ===== Google Font Import - Poformsins ===== */
+ @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600&display=swap');
+
+ * {
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+     font-family: 'Poppins', sans-serif;
+ }
+
+ body {
+     height: 100vh;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+ }
+
+
+ .containerRegister {
+     position: relative;
+     max-width: 910px;
+     height: 600px;
+     width: 90%;
+     margin-top: 24px;
+     margin-bottom: 24px;
+     border-radius: 6px;
+     padding: 40px;
+     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+ }
+
+ .containerRegister h1 {
+     position: relative;
+     font-size: 20px;
+     font-weight: 600;
+     color: #333;
+ }
+
+ .containerRegister form {
+     position: relative;
+     margin-top: 16px;
+     min-height: 440px;
+   
+     overflow: hidden;
+ }
+
+ .containerRegister form .formRegister {
+     position: absolute;
+
+     transition: 0.15s ease;
+ }
+
+ .containerRegister form .formRegister.second {
+     opacity: 0;
+     pointer-events: none;
+     transform: translateX(100%);
+ }
+
+ .containerRegister form.secActive .formRegister.second {
+     opacity: 1;
+     pointer-events: auto;
+     transform: translateX(0);
+ }
+
+ .containerRegister form.secActive .formRegister.first {
+     opacity: 0;
+     pointer-events: none;
+     transform: translateX(-100%);
+ }
+
+ .containerRegister form .title {
+     display: block;
+     margin-bottom: 8px;
+     font-size: 16px;
+     font-weight: 500;
+     margin: 6px 0;
+     color: #facc15;
+ }
+
+ .containerRegister form .fields {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     flex-wrap: wrap;
+ }
+
+ .containerRegister form .fields .inputRegister {
+     display: flex;
+     width: calc(100% / 3 - 15px);
+     flex-direction: column;
+     margin: 4px 0;
+ }
+
+
+ .containerRegister form .fields .inputRegister .direccion {
+     display: flex;
+     width: 840px;
+     flex-direction: column;
+     margin: 4px 0;
+ }
+
+ .containerRegister .inputRegister label {
+     font-size: 12px;
+     font-weight: 500;
+ }
+
+ .containerRegister .inputRegister input,
+ select,
+ textarea {
+     outline: none;
+     font-size: 14px;
+     font-weight: 400;
+     border-radius: 5px;
+     border: 1px solid #aaa;
+     padding: 0 15px;
+     height: 42px;
+     margin: 8px 0;
+ }
+
+ .containerRegister .inputRegister input :focus,
+ .containerRegister .inputRegister select:focus .inputRegister textarea:focus {
+     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.13);
+ }
+
+
+
+ .containerRegister form button,
+ .backBtn {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     height: 45px;
+     max-width: 266px;
+     width: 100%;
+     border: none;
+     outline: none;
+     font-weight: 500;
+     border-radius: 5px;
+     margin: 18px 0;
+     --tw-bg-opacity: 1;
+     background-color: rgb(250 204 21 / var(--tw-bg-opacity))
+         /* #facc15 */
+     ;
+     transition: all 0.3s linear;
+     cursor: pointer;
+ }
+
+ .containerRegister form .btnText {
+     font-weight: 500;
+     font-size: 14px;
+ }
+
+ .containerRegister form button:hover {
+     --tw-bg-opacity: 1;
+     background-color: rgb(202 138 4 / var(--tw-bg-opacity))
+         /* #ca8a04 */
+     ;
+ }
+
+ .containerRegister form button i,
+ form .backBtn i {
+     margin: 0 6px;
+ }
+
+ .containerRegister form .backBtn i {
+     transform: rotate(180deg);
+ }
+
+ .containerRegister form .buttons {
+     display: flex;
+     align-items: center;
+ }
+
+ .containerRegister form .buttons button,
+ .backBtn {
+     margin-right: 14px;
+ }
+
+ @media (max-width: 750px) {
+     .containerRegister form {
+         overflow-y: scroll;
+     }
+
+     .containerRegister form::-webkit-scrollbar {
+         display: none;
+     }
+
+     .containerRegister form .fields .inputRegister {
+         width: calc(100% / 2 - 15px);
+     }
+ }
+
+ @media (max-width: 550px) {
+     .containerRegister form .fields .inputRegister {
+         width: 100%;
+     }
+ }
+
+ .max {
+     max-width: 430px;
+ }
+
+ .container {
+     position: relative;
+     border-radius: 10px;
+     overflow: hidden;
+     width: 900px;
+     margin: 0 20px;
+ }
+
+ .container .forms {
+     display: flex;
+     align-items: center;
+     height: 440px;
+     width: 200%;
+     transition: height 0.5s ease;
+ }
+
+
+ .container .form {
+     width: 50%;
+     padding: 30px;
+     
+     transition: margin-left 0.20s ease;
+ }
+
+ .container.active .login {
+     margin-left: -50%;
+     opacity: 0;
+     transition: margin-left 0.20s ease, opacity 0.20s ease;
+ }
+
+ .container .signup {
+
+     opacity: 0;
+     transition: opacity 0.15s ease;
+ }
+
+ .container.active .signup {
+     opacity: 1;
+     transition: opacity 0.15s ease;
+ }
+
+ .container.active .forms {
+     height: 600px;
+ }
+
+ .container .form .title {
+     position: relative;
+     font-size: 27px;
+     font-weight: 600;
+ }
+
+ .container .form .title::before {
+     content: '';
+     position: absolute;
+     left: 0;
+     bottom: 0;
+     height: 3px;
+     width: 30px;
+     background-color: #facc15;
+     border-radius: 25px;
+ }
+
+ .container .form .input-field {
+     position: relative;
+     height: 50px;
+     width: 100%;
+     margin-top: 30px;
+ }
+
+ .container .input-field input {
+     position: absolute;
+     height: 100%;
+     width: 100%;
+     padding: 0 35px;
+     border: none;
+     outline: none;
+     font-size: 16px;
+     border-bottom: 2px solid;
+     border-top: 2px solid transparent;
+     transition: all 0.5s ease;
+ }
+
+ .container .input-field input:is(:focus, :valid) {
+     border-bottom-color: #facc15;
+ }
+
+ .container .input-field i {
+     position: absolute;
+     top: 50%;
+     transform: translateY(-50%);
+     font-size: 23px;
+     transition: all 0.5s ease;
+ }
+
+ .container .input-field input:is(:focus, :valid)~i {
+     color: #facc15;
+ }
+
+ .input-field i.icon {
+     left: 0;
+ }
+
+ .container .input-field i.showHidePw {
+     right: 0;
+     cursor: pointer;
+     padding: 10px;
+ }
+
+ .container .form .checkbox-text {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     margin-top: 20px;
+ }
+
+ .container .checkbox-text .checkbox-content {
+     display: flex;
+     align-items: center;
+ }
+
+ .container .checkbox-content input {
+     margin-right: 10px;
+     accent-color: #facc15;
+ }
+
+ .container .form .text {
+     font-size: 14px;
+ }
+
+ .container .form a .text {
+     text-decoration: none;
+ }
+
+ .container .form a:hover {
+     text-decoration: underline;
+ }
+
+ .container .form .button {
+     margin-top: 35px;
+ }
+
+ .container .form .button input {
+     border: none;
+     font-size: 17px;
+     font-weight: 500;
+     letter-spacing: 1px;
+     border-radius: 6px;
+     --tw-bg-opacity: 1;
+     background-color: rgb(250 204 21 / var(--tw-bg-opacity))
+         /* #facc15 */
+     ;
+     cursor: pointer;
+     transition: all 0.5s ease;
+ }
+
+ .container .button input:hover {
+     --tw-bg-opacity: 1;
+     background-color: rgb(202 138 4 / var(--tw-bg-opacity))
+         /* #ca8a04 */
+     ;
+ }
+
+ .container .form .login-signup {
+     margin-top: 30px;
+     text-align: center;
+ }
