@@ -29,10 +29,9 @@
                        class="w-full px-4 py-2 bg-green dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
         </div>
-        
-        <!-- Tarjetas de Estadísticas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <!-- Total Estudiantes -->
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+         
             <div class="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl p-6 shadow-lg">
                 <div class="flex items-center justify-between">
                     <div>
@@ -79,21 +78,7 @@
                 </div>
             </div>
             
-            <!-- Saldo Pendiente -->
-            <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-green/80">Saldo Pendiente</p>
-                        <p class="text-3xl font-bold text-green mt-2">L. {{ number_format($estadisticas['saldo_total'], 2) }}</p>
-                        <p class="text-sm text-green/80 mt-1">Total de saldos activos</p>
-                    </div>
-                    <div class="p-3 bg-green/20 rounded-lg">
-                        <svg class="w-8 h-8 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
+           
         </div>
         
         <!-- Contenido Principal -->
@@ -344,23 +329,8 @@
                                 </div>
                             </div>
                             <div class="mt-2 flex gap-2">
-                                @if(isset($matricula['tipo']) && isset($matricula['id']) && isset($matricula['estudiante_id']))
-                                    @if($matricula['tipo'] == 'modulo')
-                                    <a href="{{ route('matriculas.edit', $matricula['id']) }}" 
-                                    class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                                        Editar
-                                    </a>
-                                    @else
-                                    <a href="{{ route('matriculas-tutorias.edit', $matricula['id']) }}" 
-                                    class="text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">
-                                        Editar
-                                    </a>
-                                    @endif
-                                    <a href="{{ route('estudiantes.edit', $matricula['estudiante_id']) }}" 
-                                    class="text-xs text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-300">
-                                        Ver estudiante
-                                    </a>
-                                @endif
+                              
+                              
                             </div>
                         </div>
                         @empty
@@ -447,8 +417,7 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Modal de Detalle del Estudiante -->
+
         @if($mostrarModalDetalle && $estudianteDetalle)
         <div class="fixed inset-0 bg-green/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" wire:key="modal-detalle">
             <div class="bg-green dark:bg-stone-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">

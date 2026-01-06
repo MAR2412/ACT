@@ -23,7 +23,7 @@ return new class extends Migration
         $table->integer('tutorias_pagadas')->default(0); // Contador de tutorías pagadas
         $table->decimal('saldo_pendiente', 10, 2)->default(0); // Saldo acumulado
         
-        // Se quitan las fechas de sesiones
+        
         $table->date('fecha_inicio');
         $table->boolean('aprobado')->default(false);
         $table->text('observaciones')->nullable();

@@ -52,11 +52,27 @@ class DashboardAdmin extends Component
             ->whereBetween('fecha_pago', [$inicioMes, $hoy])
             ->sum('monto');
         
+        $pagosCamisetasMes = Matricula::where('pago_camiseta', true)
+            ->where('fecha_matricula', '>=', $inicioMes)
+            ->sum('monto_camiseta');
+            
+        $pagosGraduacionMes = Matricula::where('pago_gastos_graduacion', true)
+            ->where('fecha_matricula', '>=', $inicioMes)
+            ->sum('monto_gastos_graduacion');
+        
+        $totalCamisetasPagadas = Matricula::where('pago_camiseta', true)->count();
+        $totalGraduacionPagadas = Matricula::where('pago_gastos_graduacion', true)->count();
+        
         return [
             'hoy' => $contarPorTipo($pendientesHoy),
             'semana' => $contarPorTipo($pendientesSemana),
             'mes' => $contarPorTipo($pendientesMes),
-            'ingresos_mes' => $ingresosMes,
+            'ingresos_mes' => $ingresosMes + $pagosCamisetasMes + $pagosGraduacionMes,
+            'ingresos_matriculas' => $ingresosMes,
+            'ingresos_camisetas' => $pagosCamisetasMes,
+            'ingresos_graduacion' => $pagosGraduacionMes,
+            'estudiantes_camiseta' => $totalCamisetasPagadas,
+            'estudiantes_graduacion' => $totalGraduacionPagadas,
         ];
     }
     
@@ -75,7 +91,7 @@ class DashboardAdmin extends Component
                 $mesPendiente = $this->calcularMesPendienteModulo($matricula, $hoy);
                 
                 $precioMensual = $matricula->modulo->precio_mensual ?? 0;
-                $saldoMesActual = $precioMensual;
+                $saldoMesActual = $this->calcularMontoMesConDescuento($matricula, $mesPendiente['mes_numero'], $precioMensual);
                 
                 $fechaProximoPago = $matricula->fecha_proximo_pago ? 
                     Carbon::parse($matricula->fecha_proximo_pago) : 
@@ -121,6 +137,11 @@ class DashboardAdmin extends Component
                     'fecha_matricula' => $matricula->fecha_matricula,
                     'duracion_meses' => $matricula->modulo->duracion_meses,
                     'ultimo_mes_pagado' => $mesPendiente['ultimo_mes_pagado'],
+                    'descuento_aplicado' => $matricula->descuento_aplicado,
+                    'porcentaje_descuento' => $matricula->porcentaje_descuento,
+                    'descuento_primer_mes' => $matricula->descuento_primer_mes,
+                    'monto_descuento' => $matricula->monto_descuento,
+                    'saldo_sin_descuento' => $precioMensual,
                 ];
             });
         
@@ -177,6 +198,22 @@ class DashboardAdmin extends Component
             });
         
         return $pendientes->merge($tutorias);
+    }
+    
+    private function calcularMontoMesConDescuento($matricula, $mesNumero, $precioMensual)
+    {
+        $monto = $precioMensual;
+        
+        if ($matricula->descuento_aplicado && $matricula->porcentaje_descuento > 0) {
+            if ($matricula->descuento_primer_mes && $mesNumero == 1) {
+                $descuento = ($precioMensual * $matricula->porcentaje_descuento) / 100;
+                $monto = $precioMensual - $descuento;
+            } else {
+                $monto = $precioMensual - $matricula->monto_descuento;
+            }
+        }
+        
+        return max(0, $monto);
     }
     
     private function calcularMesPendienteModulo($matricula, $hoy)
@@ -307,49 +344,49 @@ class DashboardAdmin extends Component
     }
     
     public function getPagosRecientesProperty()
-{
-    $hoy = Carbon::now();
-    $ayer = $hoy->copy()->subDay();
-    
-    $pagosModulos = Pago::with(['matricula.estudiante', 'matricula.modulo'])
-        ->where('estado', 'completado')
-        ->whereDate('fecha_pago', '>=', $ayer)
-        ->limit(5)
-        ->get()
-        ->map(function($pago) {
-            return [
-                'tipo' => 'modulo',
-                'estudiante' => $pago->matricula->estudiante->nombre . ' ' . $pago->matricula->estudiante->apellido,
-                'curso' => $pago->matricula->modulo->nombre,
-                'monto' => $pago->monto,
-                'fecha' => $pago->fecha_pago,
-                'metodo' => $pago->metodo_pago,
-            ];
-        })->toArray();
-    
-    $pagosTutorias = PagoTutoria::with(['matriculaTutoria.estudiante', 'matriculaTutoria.tutoria'])
-        ->where('estado', 'completado')
-        ->whereDate('fecha_pago', '>=', $ayer)
-        ->limit(5)
-        ->get()
-        ->map(function($pago) {
-            return [
-                'tipo' => 'tutoria',
-                'estudiante' => $pago->matriculaTutoria->estudiante->nombre . ' ' . $pago->matriculaTutoria->estudiante->apellido,
-                'curso' => $pago->matriculaTutoria->tutoria->nombre,
-                'monto' => $pago->monto,
-                'fecha' => $pago->fecha_pago,
-                'metodo' => $pago->metodo_pago,
-            ];
-        })->toArray();
+    {
+        $hoy = Carbon::now();
+        $ayer = $hoy->copy()->subDay();
+        
+        $pagosModulos = Pago::with(['matricula.estudiante', 'matricula.modulo'])
+            ->where('estado', 'completado')
+            ->whereDate('fecha_pago', '>=', $ayer)
+            ->limit(5)
+            ->get()
+            ->map(function($pago) {
+                return [
+                    'tipo' => 'modulo',
+                    'estudiante' => $pago->matricula->estudiante->nombre . ' ' . $pago->matricula->estudiante->apellido,
+                    'curso' => $pago->matricula->modulo->nombre,
+                    'monto' => $pago->monto,
+                    'fecha' => $pago->fecha_pago,
+                    'metodo' => $pago->metodo_pago,
+                ];
+            })->toArray();
+        
+        $pagosTutorias = PagoTutoria::with(['matriculaTutoria.estudiante', 'matriculaTutoria.tutoria'])
+            ->where('estado', 'completado')
+            ->whereDate('fecha_pago', '>=', $ayer)
+            ->limit(5)
+            ->get()
+            ->map(function($pago) {
+                return [
+                    'tipo' => 'tutoria',
+                    'estudiante' => $pago->matriculaTutoria->estudiante->nombre . ' ' . $pago->matriculaTutoria->estudiante->apellido,
+                    'curso' => $pago->matriculaTutoria->tutoria->nombre,
+                    'monto' => $pago->monto,
+                    'fecha' => $pago->fecha_pago,
+                    'metodo' => $pago->metodo_pago,
+                ];
+            })->toArray();
 
-    $pagosCombinados = array_merge($pagosModulos, $pagosTutorias);
-    usort($pagosCombinados, function($a, $b) {
-        return $b['fecha'] <=> $a['fecha'];
-    });
+        $pagosCombinados = array_merge($pagosModulos, $pagosTutorias);
+        usort($pagosCombinados, function($a, $b) {
+            return $b['fecha'] <=> $a['fecha'];
+        });
 
-    return array_slice($pagosCombinados, 0, 10);
-}
+        return array_slice($pagosCombinados, 0, 10);
+    }
     
     private function generarEnlaceWhatsApp($telefono, $mensaje)
     {
@@ -391,8 +428,16 @@ class DashboardAdmin extends Component
                 $mensaje .= " *Último mes pagado:* " . Carbon::createFromFormat('Y-m', $ultimoMesPagado)->format('F Y') . "\n";
             }
             
-            $mensaje .= " *Mes a pagar:* Mes {$datos['mes_actual']} (de {$datos['duracion_meses']} meses) - {$datos['mes_nombre']}\n";
-            $mensaje .= " *Mensualidad:* L. " . number_format($datos['precio_mensual'], 2) . "\n";
+            $mensaje .= " *Mes a pagar:* Mes: {$datos['mes_nombre']}\n";
+            
+            if ($datos['descuento_aplicado'] && $datos['saldo'] != $datos['saldo_sin_descuento']) {
+                $mensaje .= " *Mensualidad normal:* L. " . number_format($datos['saldo_sin_descuento'], 2) . "\n";
+                $mensaje .= " *Descuento aplicado:* {$datos['porcentaje_descuento']}%\n";
+                $mensaje .= " *Mensualidad con descuento:* L. " . number_format($datos['precio_mensual'], 2) . "\n";
+            } else {
+                $mensaje .= " *Mensualidad:* L. " . number_format($datos['precio_mensual'], 2) . "\n";
+            }
+            
             $mensaje .= " *Total a pagar:* L. {$saldoFormateado}\n\n";
             
             if ($datos['total_pendiente'] > $datos['saldo']) {
@@ -407,8 +452,6 @@ class DashboardAdmin extends Component
             if (!empty($datos['materia'])) {
                 $mensaje .= " *Materia:* {$datos['materia']}\n";
             }
-            $mensaje .= " *Próxima sesión:* {$fechaFormateada}\n";
-            $mensaje .= " *Horas pendientes:* {$datos['horas_pendientes']}\n";
             $mensaje .= " *Precio por hora:* L. " . number_format($datos['precio_hora'], 2) . "\n";
             $mensaje .= " *Total a pagar:* L. {$saldoFormateado}\n\n";
             $mensaje .= "Por favor, realice su pago lo antes posible.\n";

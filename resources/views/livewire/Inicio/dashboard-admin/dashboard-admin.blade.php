@@ -45,7 +45,7 @@
             </div>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div class="bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl p-6 shadow-lg">
                 <div class="flex items-center justify-between">
                     <div>
@@ -56,6 +56,47 @@
                     <div class="p-3 bg-white/20 rounded-lg">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-2 text-xs text-white/90">
+                    <div>
+                        <p>Matrículas: L. {{ number_format($metricas['ingresos_matriculas'], 2) }}</p>
+                    </div>
+                    <div>
+                        <p>Camisetas: L. {{ number_format($metricas['ingresos_camisetas'], 2) }}</p>
+                    </div>
+                    <div class="col-span-2">
+                        <p>Graduación: L. {{ number_format($metricas['ingresos_graduacion'], 2) }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-white/80">Camisetas pagadas</p>
+                        <p class="text-3xl font-bold text-white mt-2">{{ $metricas['estudiantes_camiseta'] }}</p>
+                        <p class="text-sm text-white/80 mt-1">Estudiantes que pagaron</p>
+                    </div>
+                    <div class="p-3 bg-white/20 rounded-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-white/80">Graduación pagada</p>
+                        <p class="text-3xl font-bold text-white mt-2">{{ $metricas['estudiantes_graduacion'] }}</p>
+                        <p class="text-sm text-white/80 mt-1">Estudiantes que pagaron</p>
+                    </div>
+                    <div class="p-3 bg-white/20 rounded-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                     </div>
                 </div>
@@ -136,6 +177,12 @@
                                                     ⏳ PENDIENTE
                                                 </span>
                                             @endif
+                                            
+                                            @if($item['tipo'] == 'modulo' && $item['descuento_aplicado'])
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                                                    🏷️ Descuento {{ $item['porcentaje_descuento'] }}%
+                                                </span>
+                                            @endif
                                         </div>
                                         
                                         <h3 class="font-medium text-lg text-stone-900 dark:text-white mb-1">
@@ -180,7 +227,17 @@
                                                     <div class="space-y-1">
                                                         <div class="text-sm text-stone-500 dark:text-stone-400">Mensualidad</div>
                                                         <div class="font-medium text-stone-900 dark:text-white">
-                                                            💰 L. {{ number_format($item['precio_mensual'], 2) }}
+                                                            @if($item['descuento_aplicado'] && $item['saldo'] != $item['saldo_sin_descuento'])
+                                                                <div class="flex items-center gap-2">
+                                                                    <span class="text-sm line-through text-stone-400">L. {{ number_format($item['saldo_sin_descuento'], 2) }}</span>
+                                                                    <span class="text-green-600 dark:text-green-400">💰 L. {{ number_format($item['precio_mensual'], 2) }}</span>
+                                                                </div>
+                                                                <div class="text-xs text-yellow-600 dark:text-yellow-400">
+                                                                    Descuento: {{ $item['porcentaje_descuento'] }}%
+                                                                </div>
+                                                            @else
+                                                                <span class="text-green-600 dark:text-green-400">💰 L. {{ number_format($item['precio_mensual'], 2) }}</span>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                     
@@ -355,42 +412,66 @@
                             ⚡ Acciones rápidas
                         </h2>
                     </div>
-                    <div class="p-4 space-y-3">
-                        <a href="{{ route('matriculas.create') }}" 
+                   <div class="p-4 space-y-3">
+                        @can('pagos-modulos.pagos.crear')
+                        <a href="{{ route('pagos.create') }}" 
                            class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors group">
                             <div class="flex items-center">
                                 <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200 dark:group-hover:bg-blue-800">
                                     <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <span class="text-blue-700 dark:text-blue-300 font-medium block">Nueva matrícula</span>
-                                    <span class="text-xs text-blue-600 dark:text-blue-400">Módulo o tutoría</span>
+                                    <span class="text-blue-700 dark:text-blue-300 font-medium block">Nuevo Pago</span>
+                                    <span class="text-xs text-blue-600 dark:text-blue-400">Registrar Pago</span>
                                 </div>
                             </div>
                             <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </a>
+                        @endcan
                         
-                        <a href="{{ route('pagos.create') }}" 
+                        @can('matriculas.matriculas.crear')
+                        <a href="{{ route('matriculas.create') }}" 
                            class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-lg transition-colors group">
                             <div class="flex items-center">
                                 <div class="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mr-3 group-hover:bg-green-200 dark:group-hover:bg-green-800">
                                     <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <span class="text-green-700 dark:text-green-300 font-medium block">Registrar pago</span>
-                                    <span class="text-xs text-green-600 dark:text-green-400">Actualizar saldos</span>
+                                    <span class="text-green-700 dark:text-green-300 font-medium block">Nueva Matrícula</span>
+                                    <span class="text-xs text-green-600 dark:text-green-400">Módulo</span>
                                 </div>
                             </div>
                             <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </a>
+                        @endcan
+                        
+                        @can('matriculas.matriculas-tutorias.crear')
+                        <a href="{{ route('matriculas-tutoria.create') }}" 
+                           class="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 rounded-lg transition-colors group">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mr-3 group-hover:bg-purple-200 dark:group-hover:bg-purple-800">
+                                    <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="text-purple-700 dark:text-purple-300 font-medium block">Nueva Matricula de Tutoría</span>
+                                    <span class="text-xs text-purple-600 dark:text-purple-400">Matrícula de tutoría</span>
+                                </div>
+                            </div>
+                            <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                        @endcan
                     </div>
                 </div>
             </div>
@@ -476,6 +557,12 @@
                             <div class="flex justify-between">
                                 <span class="text-blue-700 dark:text-blue-400">Último mes pagado:</span>
                                 <span class="font-medium text-green-600 dark:text-green-400">{{ \Carbon\Carbon::createFromFormat('Y-m', $datosModal['ultimo_mes_pagado'])->format('M Y') }}</span>
+                            </div>
+                            @endif
+                            @if($datosModal['tipo'] == 'modulo' && $datosModal['descuento_aplicado'])
+                            <div class="flex justify-between">
+                                <span class="text-blue-700 dark:text-blue-400">Descuento:</span>
+                                <span class="font-medium text-yellow-600 dark:text-yellow-400">{{ $datosModal['porcentaje_descuento'] }}%</span>
                             </div>
                             @endif
                             <div class="flex justify-between">

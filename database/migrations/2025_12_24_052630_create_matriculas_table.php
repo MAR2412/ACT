@@ -55,12 +55,17 @@ return new class extends Migration
             $table->index('examen_suficiencia');
             $table->index('descuento_aplicado');
             $table->index('descuento_primer_mes');
+             $table->boolean('pago_camiseta')->default(false);
+            $table->decimal('monto_camiseta', 10, 2)->default(0);
+            $table->boolean('pago_gastos_graduacion')->default(false);
+            $table->decimal('monto_gastos_graduacion', 10, 2)->default(0);
             $table->index(['estudiante_id', 'modulo_id']);
             $table->index(['estudiante_id', 'estado']);
             $table->index(['modulo_id', 'estado']);
             $table->index('created_by');
             $table->index('updated_by');
-            
+             $table->index('pago_camiseta');
+            $table->index('pago_gastos_graduacion');
             $table->unique(['estudiante_id', 'modulo_id'], 'matriculas_unique_estudiante_modulo');
         });
     }

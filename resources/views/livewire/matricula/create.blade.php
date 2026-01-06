@@ -100,7 +100,6 @@
                 </div>
             @endif
 
-            <!-- SECCIÓN DE DESCUENTO - INTEGRADA DIRECTAMENTE -->
             <div class="border border-stone-200 dark:border-stone-700 rounded-md p-4 space-y-3">
                 <h4 class="font-semibold text-stone-700 dark:text-stone-300">Configuración de Descuento</h4>
                 

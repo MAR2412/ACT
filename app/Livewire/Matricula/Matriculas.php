@@ -24,6 +24,8 @@ class Matriculas extends Component
     public $showFinancialInfo = false;
     public $showExamenModal = false;
     public $showDescuentoModal = false;
+    public $showCamisetaModal = false;
+    public $showGraduacionModal = false;
     public $errorMessage;
     public $matricula_id = null;
     public $estudiante_id = '';
@@ -66,6 +68,14 @@ class Matriculas extends Component
     
     public $examenSuficienciaHabilitado = false;
     public $descuentoHabilitado = false;
+    
+    public $matriculaSeleccionada = null;
+    public $monto_camiseta = '';
+    public $monto_gastos_graduacion = '';
+
+    
+    public $editarCamiseta = false;
+    public $editarGraduacion = false;
 
     public function mount()
     {
@@ -92,7 +102,232 @@ class Matriculas extends Component
             ->get();
     }
 
-    public function render()
+    public function abrirModalCamiseta($matriculaId)
+    {
+        $this->matriculaSeleccionada = Matricula::with('estudiante')->find($matriculaId);
+        $this->editarCamiseta = false;
+        
+        if ($this->matriculaSeleccionada->pago_camiseta) {
+            $this->monto_camiseta = $this->matriculaSeleccionada->monto_camiseta;
+            $this->editarCamiseta = true;
+            $this->showEditCamisetaModal = true;
+        } else {
+            $this->monto_camiseta = '';
+            $this->showCamisetaModal = true;
+        }
+    }
+    public $showEditGraduacionModal;
+    public $showEditCamisetaModal;
+    public function abrirModalGraduacion($matriculaId)
+    {
+        $this->matriculaSeleccionada = Matricula::with('estudiante')->find($matriculaId);
+        $this->editarGraduacion = false;
+        
+        if ($this->matriculaSeleccionada->pago_gastos_graduacion) {
+            $this->monto_gastos_graduacion = $this->matriculaSeleccionada->monto_gastos_graduacion;
+            $this->editarGraduacion = true;
+            $this->showEditGraduacionModal = true;
+        } else {
+            $this->monto_gastos_graduacion = '';
+            $this->showGraduacionModal = true;
+        }
+    }
+
+    public function registrarPagoCamiseta()
+    {
+        $this->validate([
+            'monto_camiseta' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            if ($this->editarCamiseta) {
+               
+                $this->matriculaSeleccionada->update([
+                    'monto_camiseta' => $this->monto_camiseta,
+                ]);
+
+                LogService::activity(
+                    'editar_pago_camiseta',
+                    'Matrículas',
+                    "Se editó el pago de camiseta para matrícula #{$this->matriculaSeleccionada->id}",
+                    [
+                        'Editado por' => Auth::user()->email,
+                        'Estudiante' => $this->matriculaSeleccionada->estudiante->nombre . ' ' . $this->matriculaSeleccionada->estudiante->apellido,
+                        'Nuevo monto' => $this->monto_camiseta,
+                    ]
+                );
+
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => 'Monto de camiseta actualizado correctamente.'
+                ]);
+            } else {
+                // Registrar nuevo pago
+                $this->matriculaSeleccionada->registrarPagoCamiseta($this->monto_camiseta);
+
+                LogService::activity(
+                    'pago_camiseta',
+                    'Matrículas',
+                    "Se registró pago de camiseta para matrícula #{$this->matriculaSeleccionada->id}",
+                    [
+                        'Registrado por' => Auth::user()->email,
+                        'Estudiante' => $this->matriculaSeleccionada->estudiante->nombre . ' ' . $this->matriculaSeleccionada->estudiante->apellido,
+                        'Monto' => $this->monto_camiseta,
+                    ]
+                );
+
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => 'Pago de camiseta registrado correctamente.'
+                ]);
+            }
+            
+            $this->cerrarModalCamiseta();
+            
+        } catch (\Exception $e) {
+            $this->errorMessage = 'Error: ' . $e->getMessage();
+            $this->showErrorModal = true;
+        }
+    }
+
+    public function registrarPagoGraduacion()
+    {
+        $this->validate([
+            'monto_gastos_graduacion' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            if ($this->editarGraduacion) {
+              
+                $this->matriculaSeleccionada->update([
+                    'monto_gastos_graduacion' => $this->monto_gastos_graduacion,
+                ]);
+
+                LogService::activity(
+                    'editar_pago_graduacion',
+                    'Matrículas',
+                    "Se editó el pago de gastos de graduación para matrícula #{$this->matriculaSeleccionada->id}",
+                    [
+                        'Editado por' => Auth::user()->email,
+                        'Estudiante' => $this->matriculaSeleccionada->estudiante->nombre . ' ' . $this->matriculaSeleccionada->estudiante->apellido,
+                        'Nuevo monto' => $this->monto_gastos_graduacion,
+                    ]
+                );
+
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => 'Monto de gastos de graduación actualizado correctamente.'
+                ]);
+            } else {
+                $this->matriculaSeleccionada->registrarPagoGastosGraduacion($this->monto_gastos_graduacion);
+
+                LogService::activity(
+                    'pago_graduacion',
+                    'Matrículas',
+                    "Se registró pago de gastos de graduación para matrícula #{$this->matriculaSeleccionada->id}",
+                    [
+                        'Registrado por' => Auth::user()->email,
+                        'Estudiante' => $this->matriculaSeleccionada->estudiante->nombre . ' ' . $this->matriculaSeleccionada->estudiante->apellido,
+                        'Monto' => $this->monto_gastos_graduacion,
+                    ]
+                );
+
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => 'Pago de gastos de graduación registrado correctamente.'
+                ]);
+            }
+            
+            $this->cerrarModalGraduacion();
+            
+        } catch (\Exception $e) {
+            $this->errorMessage = 'Error: ' . $e->getMessage();
+            $this->showErrorModal = true;
+        }
+    }
+
+    
+    public function cancelarPagoCamiseta($matriculaId)
+    {
+        try {
+            $matricula = Matricula::find($matriculaId);
+            
+            LogService::activity(
+                'cancelar_pago_camiseta',
+                'Matrículas',
+                "Se canceló el pago de camiseta para matrícula #{$matricula->id}",
+                [
+                    'Cancelado por' => Auth::user()->email,
+                    'Estudiante' => $matricula->estudiante->nombre . ' ' . $matricula->estudiante->apellido,
+                    'Monto cancelado' => $matricula->monto_camiseta,
+                ]
+            );
+            
+            $matricula->update([
+                'pago_camiseta' => false,
+                'monto_camiseta' => 0,
+            ]);
+
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => 'Pago de camiseta cancelado correctamente.'
+            ]);
+            
+        } catch (\Exception $e) {
+            $this->errorMessage = 'Error: ' . $e->getMessage();
+            $this->showErrorModal = true;
+        }
+    }
+
+    public function cancelarPagoGraduacion($matriculaId)
+    {
+        try {
+            $matricula = Matricula::find($matriculaId);
+            
+            LogService::activity(
+                'cancelar_pago_graduacion',
+                'Matrículas',
+                "Se canceló el pago de gastos de graduación para matrícula #{$matricula->id}",
+                [
+                    'Cancelado por' => Auth::user()->email,
+                    'Estudiante' => $matricula->estudiante->nombre . ' ' . $matricula->estudiante->apellido,
+                    'Monto cancelado' => $matricula->monto_gastos_graduacion,
+                ]
+            );
+            
+            $matricula->update([
+                'pago_gastos_graduacion' => false,
+                'monto_gastos_graduacion' => 0,
+            ]);
+
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => 'Pago de gastos de graduación cancelado correctamente.'
+            ]);
+            
+        } catch (\Exception $e) {
+            $this->errorMessage = 'Error: ' . $e->getMessage();
+            $this->showErrorModal = true;
+        }
+    }
+
+    public function cerrarModalCamiseta()
+    {
+        $this->showCamisetaModal = false;
+        $this->showEditCamisetaModal = false;
+        $this->matriculaSeleccionada = null;
+        $this->monto_camiseta = '';
+        $this->editarCamiseta = false;
+    }
+
+    public function cerrarModalGraduacion()
+    {
+        $this->showGraduacionModal = false;
+        $this->showEditGraduacionModal = false;
+        $this->matriculaSeleccionada = null;
+        $this->monto_gastos_graduacion = '';
+        $this->editarGraduacion = false;
+    }    public function render()
     {
         $fechaLimite = now()->subWeeks(2);
         
@@ -130,6 +365,7 @@ class Matriculas extends Component
         $this->isOpen = true;
     }
 
+    
     public function mostrarInformacionFinanciera($id)
     {
         $matricula = Matricula::with(['modulo', 'estudiante'])->findOrFail($id);
@@ -1095,6 +1331,9 @@ class Matriculas extends Component
             'precio_original',
             'precio_mensual',
             'descuento_primer_mes',
+            'matriculaSeleccionada',
+            'monto_camiseta',
+            'monto_gastos_graduacion',
         ]);
         $this->fecha_matricula = now()->format('Y-m-d');
         $this->examen_fecha = now()->format('Y-m-d');

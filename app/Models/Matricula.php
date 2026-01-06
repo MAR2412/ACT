@@ -37,6 +37,10 @@ class Matricula extends BaseModel
         'porcentaje_descuento',
         'monto_descuento',
         'descuento_primer_mes',
+        'pago_camiseta',
+        'monto_camiseta',
+        'pago_gastos_graduacion',
+        'monto_gastos_graduacion',
         'created_by',
         'updated_by',
         'deleted_by'
@@ -47,6 +51,8 @@ class Matricula extends BaseModel
         'examen_suficiencia' => 'boolean',
         'descuento_aplicado' => 'boolean',
         'descuento_primer_mes' => 'boolean',
+        'pago_camiseta' => 'boolean',
+        'pago_gastos_graduacion' => 'boolean',
         'fecha_matricula' => 'date',
         'fecha_ultimo_pago' => 'date',
         'fecha_proximo_pago' => 'date',
@@ -56,11 +62,12 @@ class Matricula extends BaseModel
         'examen_suficiencia_nota' => 'decimal:2',
         'porcentaje_descuento' => 'decimal:2',
         'monto_descuento' => 'decimal:2',
+        'monto_camiseta' => 'decimal:2',
+        'monto_gastos_graduacion' => 'decimal:2',
         'meses_pendientes' => 'integer',
         'meses_pagados' => 'integer'
     ];
 
-    // Añade estos atributos calculados en el array $appends
     protected $appends = [
         'estado_formateado',
         'puede_avanzar',
@@ -71,7 +78,9 @@ class Matricula extends BaseModel
         'monto_primer_mes_con_descuento',
         'monto_mensual_sin_descuento',
         'precio_original',
-        'monto_descuento_formateado'
+        'monto_descuento_formateado',
+        'monto_camiseta_formateado',
+        'monto_gastos_graduacion_formateado'
     ];
 
     public function estudiante(): BelongsTo
@@ -144,7 +153,16 @@ class Matricula extends BaseModel
         return 'L. ' . number_format($this->monto_descuento, 2);
     }
 
-    
+    public function getMontoCamisetaFormateadoAttribute(): string
+    {
+        return 'L. ' . number_format($this->monto_camiseta, 2);
+    }
+
+    public function getMontoGastosGraduacionFormateadoAttribute(): string
+    {
+        return 'L. ' . number_format($this->monto_gastos_graduacion, 2);
+    }
+
     public function getPrecioOriginalAttribute(): float
     {
         if ($this->descuento_aplicado && !$this->descuento_primer_mes) {
@@ -298,6 +316,22 @@ class Matricula extends BaseModel
         ]);
     }
 
+    public function registrarPagoCamiseta($monto): void
+    {
+        $this->update([
+            'pago_camiseta' => true,
+            'monto_camiseta' => $monto,
+        ]);
+    }
+
+    public function registrarPagoGastosGraduacion($monto): void
+    {
+        $this->update([
+            'pago_gastos_graduacion' => true,
+            'monto_gastos_graduacion' => $monto,
+        ]);
+    }
+
     public function scopeActivas($query)
     {
         return $query->where('estado', 'activa');
@@ -319,8 +353,7 @@ class Matricula extends BaseModel
         return $query->where('descuento_aplicado', true)
                      ->orWhere('porcentaje_descuento', '>', 0);
     }
-    //ver desde
-    // En el modelo Matricula.php
+
     public function getMontoMensualSinDescuentoAttribute()
     {
         if ($this->modulo) {

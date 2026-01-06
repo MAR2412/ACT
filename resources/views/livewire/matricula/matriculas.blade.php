@@ -67,6 +67,7 @@
                     ['key' => 'estudiante', 'label' => 'Estudiante', 'sortable' => true],
                     ['key' => 'modulo', 'label' => 'Módulo'],
                     ['key' => 'financiero', 'label' => 'Financiero'],
+                    ['key' => 'pagos_extras', 'label' => 'Pagos Extras'],
                     ['key' => 'estado', 'label' => 'Estado'],
                     ['key' => 'actions', 'label' => 'Acciones', 'class' => 'text-right'],
                 ]"
@@ -164,6 +165,97 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                                Camiseta
+                                            </span>
+                                            @if($matricula->pago_camiseta)
+                                                <div class="text-xs text-emerald-600 dark:text-emerald-400">
+                                                    Pagado: {{ $matricula->monto_camiseta_formateado }}
+                                                </div>
+                                            @else
+                                                <div class="text-xs text-red-600 dark:text-red-400">
+                                                    Pendiente
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center space-x-1">
+                                            @if($matricula->pago_camiseta)
+                                                <button wire:click="abrirModalCamiseta({{ $matricula->id }})"
+                                                        class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 p-1"
+                                                        title="Editar monto de camiseta">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button wire:click="cancelarPagoCamiseta({{ $matricula->id }})"
+                                                        onclick="return confirmCancelarPago('camiseta')"
+                                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1"
+                                                        title="Cancelar pago de camiseta">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            @else
+                                                <button wire:click="abrirModalCamiseta({{ $matricula->id }})"
+                                                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1"
+                                                        title="Registrar pago de camiseta">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                                Gastos Graduación
+                                            </span>
+                                            @if($matricula->pago_gastos_graduacion)
+                                                <div class="text-xs text-emerald-600 dark:text-emerald-400">
+                                                    Pagado: {{ $matricula->monto_gastos_graduacion_formateado }}
+                                                </div>
+                                            @else
+                                                <div class="text-xs text-red-600 dark:text-red-400">
+                                                    Pendiente
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center space-x-1">
+                                            @if($matricula->pago_gastos_graduacion)
+                                                <button wire:click="abrirModalGraduacion({{ $matricula->id }})"
+                                                        class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 p-1"
+                                                        title="Editar monto de gastos de graduación">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button wire:click="cancelarPagoGraduacion({{ $matricula->id }})"
+                                                        onclick="return confirmCancelarPago('graduacion')"
+                                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1"
+                                                        title="Cancelar pago de gastos de graduación">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            @else
+                                                <button wire:click="abrirModalGraduacion({{ $matricula->id }})"
+                                                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1"
+                                                        title="Registrar pago de gastos de graduación">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 @if($matricula->trashed())
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
                                         Eliminado
@@ -202,7 +294,7 @@
                                         @can('matriculas.matriculas.editar')
                                             <button wire:click="edit({{ $matricula->id }})"
                                                 class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                                title="Editar">
+                                                title="Editar matrícula">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                                     fill="currentColor">
                                                     <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
@@ -216,7 +308,7 @@
                                         @can('matriculas.matriculas.eliminar')
                                             <button onclick="confirmDelete({{ $matricula->id }}, '{{ $matricula->estudiante->nombre }} {{ $matricula->estudiante->apellido }}')"
                                                     class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                                                    title="Eliminar">
+                                                    title="Eliminar matrícula">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                                     fill="currentColor">
                                                     <path fill-rule="evenodd"
@@ -229,7 +321,7 @@
                                         @can('matriculas.matriculas.restaurar')
                                             <button wire:click="restore({{ $matricula->id }})"
                                                 class="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300"
-                                                title="Restaurar">
+                                                title="Restaurar matrícula">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
                                                 </svg>
@@ -241,7 +333,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-stone-500 dark:text-stone-400">
+                            <td colspan="7" class="px-6 py-4 text-center text-stone-500 dark:text-stone-400">
                                 No se encontraron matrículas
                             </td>
                         </tr>
@@ -394,7 +486,121 @@
                                 </div>
                             </div>
                             
-                            <div class="flex flex-wrap gap-2 mb-3">
+                            <div class="mt-4 border-t pt-3 border-stone-200 dark:border-stone-700">
+                                <h4 class="font-medium text-stone-900 dark:text-stone-200 mb-2">Pagos Extras:</h4>
+                                
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                                    Camiseta:
+                                                </span>
+                                                @if($matricula->pago_camiseta)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        Pagado
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                                                        Pendiente
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            @if($matricula->pago_camiseta)
+                                                <div class="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                                                    {{ $matricula->monto_camiseta_formateado }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center space-x-1">
+                                            @if($matricula->pago_camiseta)
+                                                <button wire:click="abrirModalCamiseta({{ $matricula->id }})"
+                                                        class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 p-1"
+                                                        title="Editar monto de camiseta">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button wire:click="cancelarPagoCamiseta({{ $matricula->id }})"
+                                                        onclick="return confirmCancelarPago('camiseta')"
+                                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1"
+                                                        title="Cancelar pago de camiseta">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            @else
+                                                <button wire:click="abrirModalCamiseta({{ $matricula->id }})"
+                                                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1"
+                                                        title="Registrar pago de camiseta">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                                    Graduación:
+                                                </span>
+                                                @if($matricula->pago_gastos_graduacion)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        Pagado
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                                                        Pendiente
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            @if($matricula->pago_gastos_graduacion)
+                                                <div class="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                                                    {{ $matricula->monto_gastos_graduacion_formateado }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center space-x-1">
+                                            @if($matricula->pago_gastos_graduacion)
+                                                <button wire:click="abrirModalGraduacion({{ $matricula->id }})"
+                                                        class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 p-1"
+                                                        title="Editar monto de gastos de graduación">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button wire:click="cancelarPagoGraduacion({{ $matricula->id }})"
+                                                        onclick="return confirmCancelarPago('graduacion')"
+                                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1"
+                                                        title="Cancelar pago de gastos de graduación">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            @else
+                                                <button wire:click="abrirModalGraduacion({{ $matricula->id }})"
+                                                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1"
+                                                        title="Registrar pago de gastos de graduación">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2 mb-3 mt-3">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ 
                                     $matricula->estado == 'activa' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
                                     ($matricula->estado == 'completada' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' :
@@ -460,6 +666,15 @@
                 }
             });
         }
+        
+        function confirmCancelarPago(tipo) {
+            let mensaje = tipo === 'camiseta' 
+                ? '¿Está seguro de cancelar el pago de camiseta? Esta acción no se puede deshacer.' 
+                : '¿Está seguro de cancelar el pago de gastos de graduación? Esta acción no se puede deshacer.';
+                
+            return confirm(mensaje);
+        }
+        
         function confirmDownload() {
             const tutorias = @json(\App\Models\Modulo::where('estado', true)->get(['id', 'nombre']));
             
@@ -491,6 +706,217 @@
 
     @include('livewire.matricula.create')
     
+   
+    <x-dialog-modal wire:model.live="showCamisetaModal" maxWidth="md">
+        <x-slot name="title">
+            <h3 class="text-lg font-semibold">
+                Registrar Pago de Camiseta
+            </h3>
+        </x-slot>
+
+        <x-slot name="content">
+            @if($matriculaSeleccionada)
+                <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                    <p class="font-semibold text-blue-800 dark:text-blue-300">
+                        Estudiante: {{ $matriculaSeleccionada->estudiante->nombre }} {{ $matriculaSeleccionada->estudiante->apellido }}
+                    </p>
+                    <p class="text-sm text-blue-600 dark:text-blue-400">
+                        Módulo: {{ $matriculaSeleccionada->modulo->nombre }}
+                    </p>
+                </div>
+            @endif
+
+            <div class="space-y-4">
+                <div>
+                    <x-label value="Monto a Pagar *" />
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-stone-500">L.</span>
+                        </div>
+                        <x-input 
+                            type="number" 
+                            wire:model="monto_camiseta"
+                            step="0.01"
+                            min="0"
+                            class="w-full pl-8"
+                            placeholder="Ingrese el monto"
+                        />
+                    </div>
+                    @error('monto_camiseta') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                </div>
+            </div>
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="cerrarModalCamiseta">
+                Cancelar
+            </x-secondary-button>
+
+            <x-button wire:click="registrarPagoCamiseta" class="bg-green-600 hover:bg-green-700">
+                Registrar Pago
+            </x-button>
+        </x-slot>
+    </x-dialog-modal>
+
+    <x-dialog-modal wire:model.live="showEditCamisetaModal" maxWidth="md">
+        <x-slot name="title">
+            <h3 class="text-lg font-semibold">
+                Editar Pago de Camiseta
+            </h3>
+        </x-slot>
+
+        <x-slot name="content">
+            @if($matriculaSeleccionada)
+                <div class="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+                    <p class="font-semibold text-yellow-800 dark:text-yellow-300">
+                        Estudiante: {{ $matriculaSeleccionada->estudiante->nombre }} {{ $matriculaSeleccionada->estudiante->apellido }}
+                    </p>
+                    <p class="text-sm text-yellow-600 dark:text-yellow-400">
+                        Módulo: {{ $matriculaSeleccionada->modulo->nombre }}
+                    </p>
+                    <div class="mt-2 text-sm text-stone-600 dark:text-stone-400">
+                        <span class="font-medium">Monto actual:</span> {{ $matriculaSeleccionada->monto_camiseta_formateado }}
+                    </div>
+                </div>
+            @endif
+
+            <div class="space-y-4">
+                <div>
+                    <x-label value="Nuevo Monto *" />
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-stone-500">L.</span>
+                        </div>
+                        <x-input 
+                            type="number" 
+                            wire:model="monto_camiseta"
+                            step="0.01"
+                            min="0"
+                            class="w-full pl-8"
+                            placeholder="Ingrese el nuevo monto"
+                        />
+                    </div>
+                    @error('monto_camiseta') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                </div>
+            </div>
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="cerrarModalCamiseta">
+                Cancelar
+            </x-secondary-button>
+
+            <x-button wire:click="registrarPagoCamiseta" class="bg-yellow-600 hover:bg-yellow-700">
+                Actualizar Monto
+            </x-button>
+        </x-slot>
+    </x-dialog-modal>
+
+
+    <x-dialog-modal wire:model.live="showGraduacionModal" maxWidth="md">
+        <x-slot name="title">
+            <h3 class="text-lg font-semibold">
+                Registrar Pago de Gastos de Graduación
+            </h3>
+        </x-slot>
+
+        <x-slot name="content">
+            @if($matriculaSeleccionada)
+                <div class="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-md">
+                    <p class="font-semibold text-purple-800 dark:text-purple-300">
+                        Estudiante: {{ $matriculaSeleccionada->estudiante->nombre }} {{ $matriculaSeleccionada->estudiante->apellido }}
+                    </p>
+                    <p class="text-sm text-purple-600 dark:text-purple-400">
+                        Módulo: {{ $matriculaSeleccionada->modulo->nombre }}
+                    </p>
+                </div>
+            @endif
+
+            <div class="space-y-4">
+                <div>
+                    <x-label value="Monto a Pagar *" />
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-stone-500">L.</span>
+                        </div>
+                        <x-input 
+                            type="number" 
+                            wire:model="monto_gastos_graduacion"
+                            step="0.01"
+                            min="0"
+                            class="w-full pl-8"
+                            placeholder="Ingrese el monto"
+                        />
+                    </div>
+                    @error('monto_gastos_graduacion') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                </div>
+            </div>
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="cerrarModalGraduacion">
+                Cancelar
+            </x-secondary-button>
+
+            <x-button wire:click="registrarPagoGraduacion" class="bg-purple-600 hover:bg-purple-700">
+                Registrar Pago
+            </x-button>
+        </x-slot>
+    </x-dialog-modal>
+
+    <x-dialog-modal wire:model.live="showEditGraduacionModal" maxWidth="md">
+        <x-slot name="title">
+            <h3 class="text-lg font-semibold">
+                Editar Pago de Gastos de Graduación
+            </h3>
+        </x-slot>
+
+        <x-slot name="content">
+            @if($matriculaSeleccionada)
+                <div class="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+                    <p class="font-semibold text-yellow-800 dark:text-yellow-300">
+                        Estudiante: {{ $matriculaSeleccionada->estudiante->nombre }} {{ $matriculaSeleccionada->estudiante->apellido }}
+                    </p>
+                    <p class="text-sm text-yellow-600 dark:text-yellow-400">
+                        Módulo: {{ $matriculaSeleccionada->modulo->nombre }}
+                    </p>
+                    <div class="mt-2 text-sm text-stone-600 dark:text-stone-400">
+                        <span class="font-medium">Monto actual:</span> {{ $matriculaSeleccionada->monto_gastos_graduacion_formateado }}
+                    </div>
+                </div>
+            @endif
+
+            <div class="space-y-4">
+                <div>
+                    <x-label value="Nuevo Monto *" />
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-stone-500">L.</span>
+                        </div>
+                        <x-input 
+                            type="number" 
+                            wire:model="monto_gastos_graduacion"
+                            step="0.01"
+                            min="0"
+                            class="w-full pl-8"
+                            placeholder="Ingrese el nuevo monto"
+                        />
+                    </div>
+                    @error('monto_gastos_graduacion') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                </div>
+            </div>
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-secondary-button wire:click="cerrarModalGraduacion">
+                Cancelar
+            </x-secondary-button>
+
+            <x-button wire:click="registrarPagoGraduacion" class="bg-yellow-600 hover:bg-yellow-700">
+                Actualizar Monto
+            </x-button>
+        </x-slot>
+    </x-dialog-modal>
     
     @include('livewire.matricula.error-modal')
 </div>
