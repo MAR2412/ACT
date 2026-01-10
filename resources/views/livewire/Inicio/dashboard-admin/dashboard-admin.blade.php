@@ -72,12 +72,13 @@
                 </div>
             </div>
             
+            <!-- Nueva tarjeta unificada para Camisetas y Graduación -->
             <div class="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between mb-6">
                     <div>
-                        <p class="text-sm text-white/80">Camisetas pagadas</p>
-                        <p class="text-3xl font-bold text-white mt-2">{{ $metricas['estudiantes_camiseta'] }}</p>
-                        <p class="text-sm text-white/80 mt-1">Estudiantes que pagaron</p>
+                        <p class="text-sm text-white/80">Camisetas & Graduación</p>
+                        <p class="text-3xl font-bold text-white mt-2">L. {{ number_format($metricas['ingresos_camisetas'] + $metricas['ingresos_graduacion'], 2) }}</p>
+                        <p class="text-sm text-white/80 mt-1">Total pagado</p>
                     </div>
                     <div class="p-3 bg-white/20 rounded-lg">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,20 +86,62 @@
                         </svg>
                     </div>
                 </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <p class="text-xs text-white/80">Camisetas pag.:</p>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <p class="text-2xl font-bold text-white">{{ $metricas['estudiantes_camiseta'] }}</p>
+                           
+                        </div>
+                        <p class="text-xs text-white/60 mt-2">L. {{ number_format($metricas['ingresos_camisetas'], 2) }}</p>
+                    </div>
+                    
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
+                            <p class="text-xs text-white/80">Grad. Pag:</p>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <p class="text-2xl font-bold text-white">{{ $metricas['estudiantes_graduacion'] }}</p>
+                           
+                        </div>
+                        <p class="text-xs text-white/60 mt-2">L. {{ number_format($metricas['ingresos_graduacion'], 2) }}</p>
+                    </div>
+                </div>
             </div>
             
-            <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-6 shadow-lg">
+            <!-- Tarjeta de Egresos -->
+            <div class="bg-gradient-to-r from-rose-500 to-pink-500 rounded-xl p-6 shadow-lg">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-white/80">Graduación pagada</p>
-                        <p class="text-3xl font-bold text-white mt-2">{{ $metricas['estudiantes_graduacion'] }}</p>
-                        <p class="text-sm text-white/80 mt-1">Estudiantes que pagaron</p>
+                        <p class="text-sm text-white/80">Egresos del mes</p>
+                        <p class="text-3xl font-bold text-white mt-2">L. {{ number_format($metricas['egresos_mes'], 2) }}</p>
+                        <p class="text-sm text-white/80 mt-1">Total gastado este mes</p>
                     </div>
                     <div class="p-3 bg-white/20 rounded-lg">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                         </svg>
                     </div>
+                </div>
+
+                @php
+                    $balance = $metricas['ingresos_mes'] - $metricas['egresos_mes'];
+                    $balanceClass = $balance >= 0 ? 'text-emerald-200' : 'text-red-200';
+                    $balanceIcon = $balance >= 0 ? '↗️' : '↘️';
+                @endphp
+                <div class="mt-4 pt-4 border-t border-white/20">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-white/80">Balance neto:</span>
+                        <span class="text-lg font-bold {{ $balanceClass }}">{{ $balanceIcon }} L. {{ number_format(abs($balance), 2) }}</span>
+                    </div>
+                    <p class="text-xs text-white/60 mt-1">
+                        {{ $balance >= 0 ? 'Superávit' : 'Déficit' }} este mes
+                    </p>
                 </div>
             </div>
             
@@ -468,6 +511,27 @@
                                 </div>
                             </div>
                             <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                        @endcan
+
+                        <!-- Nueva acción para registrar egresos -->
+                        @can('finanzas.egresos.crear')
+                        <a href="{{ route('egresos.create') }}" 
+                           class="flex items-center justify-between p-3 bg-rose-50 dark:bg-rose-900/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded-lg transition-colors group">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-rose-100 dark:bg-rose-900 rounded-lg flex items-center justify-center mr-3 group-hover:bg-rose-200 dark:group-hover:bg-rose-800">
+                                    <svg class="w-5 h-5 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="text-rose-700 dark:text-rose-300 font-medium block">Nuevo Egreso</span>
+                                    <span class="text-xs text-rose-600 dark:text-rose-400">Registrar gasto</span>
+                                </div>
+                            </div>
+                            <svg class="w-4 h-4 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </a>

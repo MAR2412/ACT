@@ -7,6 +7,7 @@ use App\Models\Matricula;
 use App\Models\MatriculaTutoria;
 use App\Models\Pago;
 use App\Models\PagoTutoria;
+use App\Models\Egreso;
 use Carbon\Carbon;
 
 class DashboardAdmin extends Component
@@ -44,18 +45,23 @@ class DashboardAdmin extends Component
             ];
         };
         
+        // Cálculo de ingresos
         $inicioMes = Carbon::now()->startOfMonth();
-        $ingresosMes = Pago::where('estado', 'completado')
+        
+        // Ingresos de matrículas mensuales
+        $ingresosMatriculasMes = Pago::where('estado', 'completado')
             ->whereBetween('fecha_pago', [$inicioMes, $hoy])
             ->sum('monto') + 
             PagoTutoria::where('estado', 'completado')
             ->whereBetween('fecha_pago', [$inicioMes, $hoy])
             ->sum('monto');
         
+        // Ingresos de camisetas
         $pagosCamisetasMes = Matricula::where('pago_camiseta', true)
             ->where('fecha_matricula', '>=', $inicioMes)
             ->sum('monto_camiseta');
             
+        // Ingresos de graduación
         $pagosGraduacionMes = Matricula::where('pago_gastos_graduacion', true)
             ->where('fecha_matricula', '>=', $inicioMes)
             ->sum('monto_gastos_graduacion');
@@ -63,16 +69,56 @@ class DashboardAdmin extends Component
         $totalCamisetasPagadas = Matricula::where('pago_camiseta', true)->count();
         $totalGraduacionPagadas = Matricula::where('pago_gastos_graduacion', true)->count();
         
+        // Cálculo de egresos - IMPORTANTE: usar monto_utilizado no monto
+        $egresosMes = Egreso::whereBetween('fecha_egreso', [$inicioMes, $hoy])
+            ->where('estado', 1) // Usar 1 en lugar de 'confirmado' o true
+            ->sum('monto_utilizado'); // Asegurarse de usar monto_utilizado
+        
+        // Desglose de egresos por categoría
+        $egresosTutorias = Egreso::whereBetween('fecha_egreso', [$inicioMes, $hoy])
+            ->where('estado', 1)
+            ->where('descripcion', 'like', '%tutor%')
+            ->sum('monto_utilizado');
+            
+        $egresosOperativos = Egreso::whereBetween('fecha_egreso', [$inicioMes, $hoy])
+            ->where('estado', 1)
+            ->where(function($query) {
+                $query->where('descripcion', 'like', '%operat%')
+                      ->orWhere('descripcion', 'like', '%suministr%')
+                      ->orWhere('descripcion', 'like', '%material%');
+            })
+            ->sum('monto_utilizado');
+            
+        $egresosAdministrativos = Egreso::whereBetween('fecha_egreso', [$inicioMes, $hoy])
+            ->where('estado', 1)
+            ->where(function($query) {
+                $query->where('descripcion', 'like', '%admin%')
+                      ->orWhere('descripcion', 'like', '%salari%')
+                      ->orWhere('descripcion', 'like', '%servici%')
+                      ->orWhere('descripcion', 'like', '%factur%');
+            })
+            ->sum('monto_utilizado');
+        
+        // Cálculo del balance
+        $ingresosTotalesMes = $ingresosMatriculasMes + $pagosCamisetasMes + $pagosGraduacionMes;
+        $balance = $ingresosTotalesMes - $egresosMes;
+        
         return [
             'hoy' => $contarPorTipo($pendientesHoy),
             'semana' => $contarPorTipo($pendientesSemana),
             'mes' => $contarPorTipo($pendientesMes),
-            'ingresos_mes' => $ingresosMes + $pagosCamisetasMes + $pagosGraduacionMes,
-            'ingresos_matriculas' => $ingresosMes,
+            'ingresos_mes' => $ingresosTotalesMes,
+            'ingresos_matriculas' => $ingresosMatriculasMes,
             'ingresos_camisetas' => $pagosCamisetasMes,
             'ingresos_graduacion' => $pagosGraduacionMes,
             'estudiantes_camiseta' => $totalCamisetasPagadas,
             'estudiantes_graduacion' => $totalGraduacionPagadas,
+            // Nuevas métricas para egresos
+            'egresos_mes' => $egresosMes,
+            'egresos_tutorias' => $egresosTutorias,
+            'egresos_operativos' => $egresosOperativos,
+            'egresos_administrativos' => $egresosAdministrativos,
+            'balance_mes' => $balance,
         ];
     }
     

@@ -19,6 +19,7 @@ use App\Livewire\Modulo\Modulos;
 use App\Livewire\Estudiante\Estudiantes;
 use App\Livewire\Matricula\Matriculas;
 use App\Livewire\Matricula\MatriculaTutorias;
+use App\Livewire\Pago\Egresos;
 use App\Livewire\Pago\Pagos;
 use App\Livewire\Pago\HistorialPagos;
 use App\Livewire\PagosTutoria\HistorialPagosTutorias;
@@ -165,6 +166,15 @@ Route::middleware([
         Route::get('/pagos-modulos/pagos-tutorias/{pagosTutoria}/editar', PagosTutorias::class)
             ->name('pagos-tutorias.edit')
             ->middleware('can:pagos-modulos.pagos-tutorias.editar');
+         Route::get('/pagos-modulos/egresos', Egresos::class)
+            ->name('egresos')
+            ->middleware('can:pagos-modulos.egresos.ver');
+        Route::get('/pagos-modulos/egresos/crear', Egresos::class)
+            ->name('egresos.create')
+            ->middleware('can:pagos-modulos.pagos-tutorias.crear');
+        Route::get('/pagos-modulos/egresos/{egreso}/editar', Egresos::class)
+            ->name('egresos.edit')
+            ->middleware('can:pagos-modulos.egresos.editar');
         Route::get('/pagos-modulos/historial-pagos-tutorias', HistorialPagosTutorias::class)
             ->name('historial-pagos-tutorias')
             ->middleware('can:pagos-modulos.historial-pagos-tutorias.ver');

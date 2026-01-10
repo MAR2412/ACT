@@ -155,6 +155,15 @@ return [
                 'breadcrumb' => true
             ],
             [
+                'titulo' => 'Egresos',
+                'route' => 'egresos',
+                'routes' => ['agresos'],
+                'permisos' => ['pagos-modulos.egresos.ver'],
+                'icono' => 'fas fa-hand-holding-usd',
+                'default_route' => true,
+                'breadcrumb' => true
+            ],
+            [
                 'titulo' => 'Historial Pagos Módulos',
                 'route' => 'pagos-historial',
                 'routes' => ['pagos-historial'],
