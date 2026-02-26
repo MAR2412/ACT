@@ -212,7 +212,7 @@ class DashboardParticipante extends Component
 
     public function render()
     {
-        return view('livewire.inicio.dashboard-participante.dashboard-participante', [
+        return view('livewire.Inicio.dashboard-participante.dashboard-participante', [
             'estudiantes' => $this->estudiantes,
             'matriculasRecientes' => $this->matriculasRecientes,
         ]);

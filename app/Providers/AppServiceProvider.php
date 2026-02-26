@@ -31,7 +31,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function ($user, $ability) {
             return $user->hasRole('super-admin') ? true : null;
         });
-
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
         // Gate para verificar acceso a módulos
         Gate::define('acceder-modulo', function ($user, $module) {
             // Si es super-admin, siempre tiene acceso

@@ -548,7 +548,7 @@ class DashboardAdmin extends Component
     
     public function render()
     {
-        return view('livewire.inicio.dashboard-admin.dashboard-admin', [
+        return view('livewire.Inicio.dashboard-admin.dashboard-admin', [
             'metricas' => $this->metricas,
             'pendientes' => $this->pendientes,
             'pagosRecientes' => $this->pagosRecientes,
