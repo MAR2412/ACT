@@ -82,21 +82,8 @@ class Matriculas extends Component
         $this->fecha_matricula = now()->format('Y-m-d');
         $this->examen_fecha = now()->format('Y-m-d');
         
-        $fechaLimiteInicio = now()->subWeeks(2);
-        
         $this->modulos = Modulo::where('estado', true)
             ->with(['sede', 'modalidad', 'seccion'])
-            ->where(function ($query) use ($fechaLimiteInicio) {
-                $query->where(function ($subQuery) {
-                    $subQuery->whereNull('fecha_inicio')
-                           ->orWhere('fecha_inicio', '>=', now());
-                })
-                ->orWhere(function ($subQuery) use ($fechaLimiteInicio) {
-                    $subQuery->whereNotNull('fecha_inicio')
-                           ->where('fecha_inicio', '>=', $fechaLimiteInicio)
-                           ->where('fecha_inicio', '<', now());
-                });
-            })
             ->orderBy('nivel')
             ->orderBy('orden')
             ->get();
@@ -162,7 +149,7 @@ class Matriculas extends Component
                     'message' => 'Monto de camiseta actualizado correctamente.'
                 ]);
             } else {
-                // Registrar nuevo pago
+           
                 $this->matriculaSeleccionada->registrarPagoCamiseta($this->monto_camiseta);
 
                 LogService::activity(
@@ -327,7 +314,8 @@ class Matriculas extends Component
         $this->matriculaSeleccionada = null;
         $this->monto_gastos_graduacion = '';
         $this->editarGraduacion = false;
-    }    public function render()
+    }    
+    public function render()
     {
         $fechaLimite = now()->subWeeks(2);
         

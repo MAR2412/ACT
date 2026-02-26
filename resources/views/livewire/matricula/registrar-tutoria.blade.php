@@ -43,7 +43,6 @@
                 </label>
                 
                 @if($registrarPagada)
-                    @endif@if($registrarPagada)
                 <div class="space-y-4 border-t border-stone-200 dark:border-stone-700 pt-4">
                     <div>
                         <x-label value="Método de Pago *" />
@@ -97,14 +96,14 @@
             </div>
         </form>
     </x-slot>
-        <x-slot name="footer">
-            <x-secondary-button wire:click="closeRegistrarTutoriaModal">
-                Cancelar
-            </x-secondary-button>
 
-            <x-button wire:click="registrarTutoria" class="bg-emerald-600 hover:bg-emerald-700">
-                Registrar Tutoría
-            </x-button>
-        </x-slot>
+    <x-slot name="footer">
+        <x-secondary-button wire:click="closeRegistrarTutoriaModal">
+            Cancelar
+        </x-secondary-button>
+
+        <x-button wire:click="registrarTutoria" class="bg-emerald-600 hover:bg-emerald-700">
+            Registrar Tutoría
+        </x-button>
+    </x-slot>
 </x-dialog-modal>
-    
