@@ -184,7 +184,7 @@ class RoleForm extends Component
 
     public function render()
     {
-        return view('livewire.rol.form')
+        return view('livewire.Rol.form')
             ->layout('layouts.app');
     }
 }
