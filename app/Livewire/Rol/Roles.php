@@ -43,7 +43,7 @@ class Roles extends Component
         // Obtener resultados paginados
         $roles = $query->paginate($this->perPage ?? 10);
 
-        return view('livewire.rol.roles', [
+        return view('livewire.Rol.roles', [
             'roles' => $roles
         ])->layout('layouts.app');
     }
