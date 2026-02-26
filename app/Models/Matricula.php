@@ -80,7 +80,8 @@ class Matricula extends BaseModel
         'precio_original',
         'monto_descuento_formateado',
         'monto_camiseta_formateado',
-        'monto_gastos_graduacion_formateado'
+        'monto_gastos_graduacion_formateado',
+        'monto_mensual_con_descuento'
     ];
 
     public function estudiante(): BelongsTo
@@ -95,7 +96,14 @@ class Matricula extends BaseModel
 
     public function pagos(): HasMany
     {
-        return $this->hasMany(Pago::class, 'matricula_id');
+        return $this->hasMany(Pago::class, 'matricula_id')->orderBy('fecha_pago', 'desc');
+    }
+
+    public function pagosMensualidad(): HasMany
+    {
+        return $this->hasMany(Pago::class, 'matricula_id')
+            ->where('tipo', 'mensualidad')
+            ->orderBy('mes_pagado', 'desc');
     }
 
     public function anterior(): BelongsTo
@@ -130,7 +138,7 @@ class Matricula extends BaseModel
 
     public function getTotalPagadoAttribute(): float
     {
-        return $this->precio_total_modulo - $this->saldo_pendiente;
+        return $this->pagosMensualidad->where('estado', 'completado')->sum('monto');
     }
 
     public function getTotalPagadoFormateadoAttribute(): string
@@ -145,7 +153,7 @@ class Matricula extends BaseModel
 
     public function getConDescuentoAttribute(): bool
     {
-        return $this->porcentaje_descuento > 0;
+        return $this->descuento_aplicado && $this->porcentaje_descuento > 0;
     }
 
     public function getMontoDescuentoFormateadoAttribute(): string
@@ -165,17 +173,50 @@ class Matricula extends BaseModel
 
     public function getPrecioOriginalAttribute(): float
     {
-        if ($this->descuento_aplicado && !$this->descuento_primer_mes) {
-            return $this->precio_total_modulo + $this->monto_descuento;
+        if (!$this->modulo) {
+            return $this->precio_total_modulo;
+        }
+
+        $precioMensual = $this->modulo->precio_mensual;
+        $duracion = $this->modulo->duracion_meses;
+        
+        return $precioMensual * $duracion;
+    }
+
+    public function getMontoMensualSinDescuentoAttribute(): float
+    {
+        if (!$this->modulo) {
+            return 0;
+        }
+        return $this->modulo->precio_mensual;
+    }
+
+    public function getMontoPrimerMesConDescuentoAttribute(): float
+    {
+        if (!$this->modulo) {
+            return 0;
         }
         
-        if ($this->descuento_aplicado && $this->descuento_primer_mes) {
+        if ($this->descuento_aplicado && $this->descuento_primer_mes && $this->porcentaje_descuento > 0) {
             $precioMensual = $this->modulo->precio_mensual;
-            $mesesTotales = $this->modulo->duracion_meses;
-            return $precioMensual * $mesesTotales;
+            return round($precioMensual * (1 - $this->porcentaje_descuento / 100), 2);
         }
         
-        return $this->precio_total_modulo;
+        return $this->modulo->precio_mensual;
+    }
+
+    public function getMontoMensualConDescuentoAttribute(): float
+    {
+        if (!$this->modulo) {
+            return 0;
+        }
+        
+        if ($this->descuento_aplicado && !$this->descuento_primer_mes && $this->porcentaje_descuento > 0) {
+            $precioMensual = $this->modulo->precio_mensual;
+            return round($precioMensual * (1 - $this->porcentaje_descuento / 100), 2);
+        }
+        
+        return $this->modulo->precio_mensual;
     }
 
     public function registrarPago(array $datos): Pago
@@ -198,15 +239,24 @@ class Matricula extends BaseModel
             'created_by' => auth()->id(),
         ]);
 
+        $this->recalcularSaldo();
+        
         $this->update([
-            'saldo_pendiente' => max(0, $this->saldo_pendiente - $monto),
-            'meses_pagados' => $this->meses_pagados + 1,
-            'meses_pendientes' => max(0, $this->meses_pendientes - 1),
+            'meses_pagados' => $this->pagosMensualidad->count(),
+            'meses_pendientes' => max(0, $this->modulo->duracion_meses - $this->pagosMensualidad->count()),
             'fecha_ultimo_pago' => now(),
             'fecha_proximo_pago' => now()->addMonth(),
         ]);
 
         return $pago;
+    }
+
+    public function recalcularSaldo(): void
+    {
+        $totalPagado = $this->pagosMensualidad->where('estado', 'completado')->sum('monto');
+        $nuevoSaldo = round($this->precio_total_modulo - $totalPagado, 2);
+        
+        $this->update(['saldo_pendiente' => max(0, $nuevoSaldo)]);
     }
 
     public function scopeSearch($query, $search)
@@ -229,15 +279,6 @@ class Matricula extends BaseModel
             ->orWhere('estado', 'like', "%{$search}%")
             ->orWhere('id', 'like', "%{$search}%");
         });
-    }
-
-    public function marcarMesNoPagado(): void
-    {
-        $this->update([
-            'saldo_pendiente' => $this->saldo_pendiente + $this->modulo->precio_mensual,
-            'meses_pendientes' => $this->meses_pendientes + 1,
-            'fecha_proximo_pago' => now()->addMonth(),
-        ]);
     }
 
     public function completar(array $datos = []): bool
@@ -263,9 +304,10 @@ class Matricula extends BaseModel
             'estudiante_id' => $this->estudiante_id,
             'modulo_id' => $siguienteModulo->id,
             'estado' => 'pendiente',
-            'precio_total_modulo' => $siguienteModulo->precio_total,
-            'saldo_pendiente' => $siguienteModulo->precio_total,
+            'precio_total_modulo' => $siguienteModulo->precio_mensual * $siguienteModulo->duracion_meses,
+            'saldo_pendiente' => $siguienteModulo->precio_mensual * $siguienteModulo->duracion_meses,
             'meses_pendientes' => $siguienteModulo->duracion_meses,
+            'meses_pagados' => 0,
             'fecha_matricula' => now(),
             'matricula_anterior_id' => $this->id,
             'created_by' => auth()->id(),
@@ -278,28 +320,37 @@ class Matricula extends BaseModel
 
     public function aplicarDescuento($porcentaje, $observaciones = null, $soloPrimerMes = true): void
     {
+        if (!$this->modulo) {
+            return;
+        }
+        
         $precioMensual = $this->modulo->precio_mensual;
+        $duracion = $this->modulo->duracion_meses;
         
         if ($soloPrimerMes) {
             $montoDescuento = $precioMensual * ($porcentaje / 100);
+            $primerMesConDescuento = $precioMensual - $montoDescuento;
+            $nuevoPrecioTotal = $primerMesConDescuento + ($precioMensual * ($duracion - 1));
             
             $this->update([
                 'porcentaje_descuento' => $porcentaje,
-                'monto_descuento' => $montoDescuento,
+                'monto_descuento' => round($montoDescuento, 2),
+                'precio_total_modulo' => round($nuevoPrecioTotal, 2),
+                'saldo_pendiente' => round($nuevoPrecioTotal - $this->total_pagado, 2),
                 'descuento_aplicado' => true,
                 'descuento_primer_mes' => true,
                 'observaciones' => $observaciones ? ($this->observaciones . ' | ' . $observaciones) : $this->observaciones,
             ]);
         } else {
-            $precioTotal = $this->modulo->precio_total;
+            $precioTotal = $precioMensual * $duracion;
             $montoDescuento = $precioTotal * ($porcentaje / 100);
-            $nuevoPrecio = $precioTotal - $montoDescuento;
+            $nuevoPrecioTotal = $precioTotal - $montoDescuento;
 
             $this->update([
                 'porcentaje_descuento' => $porcentaje,
-                'monto_descuento' => $montoDescuento,
-                'precio_total_modulo' => $nuevoPrecio,
-                'saldo_pendiente' => $nuevoPrecio,
+                'monto_descuento' => round($montoDescuento, 2),
+                'precio_total_modulo' => round($nuevoPrecioTotal, 2),
+                'saldo_pendiente' => round($nuevoPrecioTotal - $this->total_pagado, 2),
                 'descuento_aplicado' => true,
                 'descuento_primer_mes' => false,
                 'observaciones' => $observaciones ? ($this->observaciones . ' | ' . $observaciones) : $this->observaciones,
@@ -332,6 +383,22 @@ class Matricula extends BaseModel
         ]);
     }
 
+    public function cancelarPagoCamiseta(): void
+    {
+        $this->update([
+            'pago_camiseta' => false,
+            'monto_camiseta' => 0,
+        ]);
+    }
+
+    public function cancelarPagoGastosGraduacion(): void
+    {
+        $this->update([
+            'pago_gastos_graduacion' => false,
+            'monto_gastos_graduacion' => 0,
+        ]);
+    }
+
     public function scopeActivas($query)
     {
         return $query->where('estado', 'activa');
@@ -350,32 +417,6 @@ class Matricula extends BaseModel
 
     public function scopeConDescuento($query)
     {
-        return $query->where('descuento_aplicado', true)
-                     ->orWhere('porcentaje_descuento', '>', 0);
-    }
-
-    public function getMontoMensualSinDescuentoAttribute()
-    {
-        if ($this->modulo) {
-            return $this->modulo->precio_mensual;
-        }
-        return 0;
-    }
-
-    public function getMontoPrimerMesConDescuentoAttribute()
-    {
-        if ($this->descuento_aplicado && $this->descuento_primer_mes) {
-            $precioMensual = $this->modulo->precio_mensual;
-            return $precioMensual - ($precioMensual * ($this->porcentaje_descuento / 100));
-        }
-        return $this->modulo ? $this->modulo->precio_mensual : 0;
-    }
-
-    public function getMontoMensualConDescuentoAttribute()
-    {
-        if ($this->descuento_aplicado && !$this->descuento_primer_mes) {
-            return $this->precio_total_modulo / $this->modulo->duracion_meses;
-        }
-        return $this->modulo ? $this->modulo->precio_mensual : 0;
+        return $query->where('descuento_aplicado', true);
     }
 }
