@@ -434,58 +434,133 @@ class Matriculas extends Component
         }
     }
 
-    public function calcularDescuento()
-    {
-        if ($this->modulo_info) {
-            $precioMensual = $this->modulo_info->precio_mensual;
-            $duracion = $this->modulo_info->duracion_meses;
-            $precioTotal = $precioMensual * $duracion;
-            
-            if ($this->descuento_primer_mes) {
-                $this->monto_descuento = $precioMensual * ($this->porcentaje_descuento / 100);
-                $this->precio_con_descuento = $precioMensual - $this->monto_descuento;
-                $this->precio_total_modulo = ($this->precio_con_descuento) + ($precioMensual * ($duracion - 1));
-                $this->precio_original = $precioTotal;
-            } else {
-                $this->monto_descuento = $precioTotal * ($this->porcentaje_descuento / 100);
-                $this->precio_con_descuento = $precioTotal - $this->monto_descuento;
-                $this->precio_total_modulo = $this->precio_con_descuento;
-                $this->precio_original = $precioTotal;
-            }
-            
-            $this->actualizarSaldoPendiente();
+    private function calcularMontoMesConDescuento($matricula, $mesNumero, $precioMensual)
+{
+    $monto = $precioMensual;
+    
+    if ($matricula->descuento_aplicado && $matricula->porcentaje_descuento > 0) {
+        if ($matricula->descuento_primer_mes && $mesNumero == 1) {
+            $descuento = ($precioMensual * $matricula->porcentaje_descuento) / 100;
+            $monto = $precioMensual - $descuento;
+        } else if (!$matricula->descuento_primer_mes) {
+            $descuento = ($precioMensual * $matricula->porcentaje_descuento) / 100;
+            $monto = $precioMensual - $descuento;
         }
     }
+    
+    return max(0, round($monto, 2));
+}
 
-    private function actualizarSaldoPendiente()
-    {
-        if ($this->modulo_info) {
-            $precioMensual = $this->modulo_info->precio_mensual;
-            $duracion = $this->modulo_info->duracion_meses;
-            
-            $totalConDescuento = $this->precio_total_modulo;
-            
-            $montoPagado = 0;
-            if ($this->meses_pagados > 0) {
-                for ($i = 1; $i <= $this->meses_pagados; $i++) {
-                    if ($i === 1 && $this->descuentoHabilitado && $this->descuento_primer_mes) {
-                        $montoPagado += $this->precio_con_descuento;
-                    } else {
-                        $montoPagado += $precioMensual;
-                    }
-                }
-            }
-            
-            if (!$this->descuento_primer_mes && $this->descuentoHabilitado) {
-                $this->saldo_pendiente = max(0, $totalConDescuento - $montoPagado);
-            } else {
-                $this->saldo_pendiente = max(0, $totalConDescuento - $montoPagado);
-            }
-            
-            $this->meses_pendientes = max(0, $duracion - $this->meses_pagados);
+public function updatedMesesPagados($value)
+{
+    if ($this->modulo_info) {
+        $duracion = $this->modulo_info->duracion_meses;
+        $precioMensual = $this->modulo_info->precio_mensual;
+        
+        if ($value > $duracion) {
+            $this->meses_pagados = $duracion;
+            $value = $duracion;
+        }
+        
+        if ($value < 0) {
+            $this->meses_pagados = 0;
+            $value = 0;
+        }
+        
+        $this->meses_pendientes = $duracion - $value;
+        
+        $montoTotalPagado = 0;
+        
+        for ($i = 1; $i <= $value; $i++) {
+            $montoMes = $this->calcularMontoMesConDescuento(
+                (object)[
+                    'descuento_aplicado' => $this->descuentoHabilitado,
+                    'porcentaje_descuento' => $this->porcentaje_descuento,
+                    'descuento_primer_mes' => $this->descuento_primer_mes,
+                ],
+                $i,
+                $precioMensual
+            );
+            $montoTotalPagado += $montoMes;
+        }
+        
+        $totalConDescuento = $this->precio_total_modulo;
+        
+        $this->saldo_pendiente = round($totalConDescuento - $montoTotalPagado, 2);
+        
+        if ($value > 0) {
+            $this->fecha_ultimo_pago = Carbon::parse($this->fecha_matricula)
+                ->addMonths($value - 1)
+                ->format('Y-m-d');
+                
+            $this->fecha_proximo_pago = Carbon::parse($this->fecha_ultimo_pago)
+                ->addMonth()
+                ->format('Y-m-d');
+        } else {
+            $this->fecha_ultimo_pago = null;
+            $this->fecha_proximo_pago = Carbon::parse($this->fecha_matricula)
+                ->addMonth()
+                ->format('Y-m-d');
         }
     }
+}
 
+private function actualizarSaldoPendiente()
+{
+    if ($this->modulo_info) {
+        $precioMensual = $this->modulo_info->precio_mensual;
+        $duracion = $this->modulo_info->duracion_meses;
+        
+        $totalConDescuento = $this->precio_total_modulo;
+        
+        $montoPagado = 0;
+        if ($this->meses_pagados > 0) {
+            for ($i = 1; $i <= $this->meses_pagados; $i++) {
+                $montoMes = $this->calcularMontoMesConDescuento(
+                    (object)[
+                        'descuento_aplicado' => $this->descuentoHabilitado,
+                        'porcentaje_descuento' => $this->porcentaje_descuento,
+                        'descuento_primer_mes' => $this->descuento_primer_mes,
+                    ],
+                    $i,
+                    $precioMensual
+                );
+                $montoPagado += $montoMes;
+            }
+        }
+        
+        $this->saldo_pendiente = round($totalConDescuento - $montoPagado, 2);
+        
+        $this->meses_pendientes = max(0, $duracion - $this->meses_pagados);
+    }
+}
+
+public function calcularDescuento()
+{
+    if ($this->modulo_info) {
+        $precioMensual = $this->modulo_info->precio_mensual;
+        $duracion = $this->modulo_info->duracion_meses;
+        
+        if ($this->descuento_primer_mes) {
+            $montoPrimerMes = $precioMensual * (1 - $this->porcentaje_descuento / 100);
+            $montoOtrosMeses = $precioMensual;
+            
+            $this->precio_total_modulo = round($montoPrimerMes + ($montoOtrosMeses * ($duracion - 1)), 2);
+            $this->precio_original = $precioMensual * $duracion;
+            $this->monto_descuento = round($this->precio_original - $this->precio_total_modulo, 2);
+            
+            $this->monto_primer_mes_con_descuento = round($montoPrimerMes, 2);
+            $this->monto_mensual_sin_descuento = $precioMensual;
+        } else {
+            $this->precio_total_modulo = round($precioMensual * $duracion * (1 - $this->porcentaje_descuento / 100), 2);
+            $this->precio_original = $precioMensual * $duracion;
+            $this->monto_descuento = round($this->precio_original - $this->precio_total_modulo, 2);
+        }
+        
+        $this->actualizarSaldoPendiente();
+    }
+}
+public $monto_mensual_sin_descuento, $monto_primer_mes_con_descuento ;
     public function updatedPorcentajeDescuento($value)
     {
         $this->calcularDescuento();
@@ -773,47 +848,7 @@ class Matriculas extends Component
         $this->precio_mensual = 0;
     }
     
-    public function updatedMesesPagados($value)
-    {
-        if ($this->modulo_info) {
-            $duracion = $this->modulo_info->duracion_meses;
-            $precioMensual = $this->modulo_info->precio_mensual;
-            
-            if ($value > $duracion) {
-                $this->meses_pagados = $duracion;
-                $value = $duracion;
-            }
-            
-            if ($value < 0) {
-                $this->meses_pagados = 0;
-                $value = 0;
-            }
-            
-            $this->meses_pendientes = $duracion - $value;
-            
-            if ($this->descuentoHabilitado) {
-                $this->calcularDescuento();
-            } else {
-                $this->actualizarTotalesSinDescuento();
-            }
-            
-            if ($value > 0) {
-                $this->fecha_ultimo_pago = Carbon::parse($this->fecha_matricula)
-                    ->addMonths($value - 1)
-                    ->format('Y-m-d');
-                    
-                $this->fecha_proximo_pago = Carbon::parse($this->fecha_ultimo_pago)
-                    ->addMonth()
-                    ->format('Y-m-d');
-            } else {
-                $this->fecha_ultimo_pago = null;
-                $this->fecha_proximo_pago = Carbon::parse($this->fecha_matricula)
-                    ->addMonth()
-                    ->format('Y-m-d');
-            }
-        }
-    }
-
+    
     public function actualizarInformacionFinanciera()
     {
         if ($this->modulo_info) {
