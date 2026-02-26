@@ -246,6 +246,64 @@ class DashboardAdmin extends Component
         return $pendientes->merge($tutorias);
     }
     
+    private function calcularMesPendienteModulo($matricula, $hoy)
+    {
+        $fechaMatricula = Carbon::parse($matricula->fecha_matricula);
+        $duracionMeses = $matricula->modulo->duracion_meses;
+        
+        $mesesPagados = $matricula->pagos
+            ->where('estado', 'completado')
+            ->where('tipo', 'mensualidad')
+            ->pluck('mes_pagado')
+            ->map(function($mes) {
+                return Carbon::createFromFormat('Y-m', $mes);
+            })
+            ->sort()
+            ->values();
+        
+        if ($mesesPagados->isEmpty()) {
+            $mesPendiente = $fechaMatricula->copy();
+            $mesNumero = 1;
+        } else {
+            $mesPendiente = null;
+            $mesNumero = null;
+            
+            for ($i = 1; $i <= $duracionMeses; $i++) {
+                $mesActual = $fechaMatricula->copy()->addMonths($i - 1);
+                
+                $pagado = $mesesPagados->contains(function($fecha) use ($mesActual) {
+                    return $fecha->format('Y-m') === $mesActual->format('Y-m');
+                });
+                
+                if (!$pagado) {
+                    $mesPendiente = $mesActual;
+                    $mesNumero = $i;
+                    break;
+                }
+            }
+            
+            if ($mesPendiente === null) {
+                return [
+                    'mes_numero' => $duracionMeses + 1,
+                    'mes_nombre' => null,
+                    'ultimo_mes_pagado' => $mesesPagados->last() ? $mesesPagados->last()->format('Y-m') : null,
+                    'fecha_pendiente' => null,
+                    'todos_pagados' => true
+                ];
+            }
+        }
+        
+        $ultimoMesPagado = $mesesPagados->isNotEmpty() ? $mesesPagados->last()->format('Y-m') : null;
+        
+        return [
+            'mes_numero' => $mesNumero,
+            'mes_nombre' => $this->getNombreMes($mesPendiente),
+            'ultimo_mes_pagado' => $ultimoMesPagado,
+            'fecha_pendiente' => $mesPendiente,
+            'todos_pagados' => false
+        ];
+    }
+
     private function calcularMontoMesConDescuento($matricula, $mesNumero, $precioMensual)
     {
         $monto = $precioMensual;
@@ -254,63 +312,14 @@ class DashboardAdmin extends Component
             if ($matricula->descuento_primer_mes && $mesNumero == 1) {
                 $descuento = ($precioMensual * $matricula->porcentaje_descuento) / 100;
                 $monto = $precioMensual - $descuento;
-            } else {
-                $monto = $precioMensual - $matricula->monto_descuento;
+            } else if (!$matricula->descuento_primer_mes) {
+                $descuento = ($precioMensual * $matricula->porcentaje_descuento) / 100;
+                $monto = $precioMensual - $descuento;
             }
         }
         
         return max(0, $monto);
     }
-    
-    private function calcularMesPendienteModulo($matricula, $hoy)
-    {
-        $fechaMatricula = Carbon::parse($matricula->fecha_matricula);
-        
-        $ultimoPago = $matricula->pagos
-            ->where('estado', 'completado')
-            ->where('tipo', 'mensualidad')
-            ->sortByDesc('mes_pagado')
-            ->first();
-        
-        $mesSiguiente = null;
-        $mesPendienteNumero = 1;
-        
-        if ($ultimoPago && $ultimoPago->mes_pagado) {
-            try {
-                $ultimoMesPagado = Carbon::createFromFormat('Y-m', $ultimoPago->mes_pagado);
-                
-                $mesSiguiente = $ultimoMesPagado->copy()->addMonth();
-                
-                if ($mesSiguiente->isPast() || $mesSiguiente->isCurrentMonth()) {
-                    $mesPendienteNumero = $this->calcularNumeroMesDesdeInicio($fechaMatricula, $mesSiguiente);
-                }
-            } catch (\Exception $e) {
-            }
-        }
-        
-        if (!$mesSiguiente) {
-            $mesesTranscurridos = $fechaMatricula->diffInMonths($hoy);
-            
-            if ($fechaMatricula->day > $hoy->day) {
-                $mesesTranscurridos++;
-            }
-            
-            $mesPendienteNumero = min($mesesTranscurridos + 1, $matricula->modulo->duracion_meses);
-            $mesPendienteNumero = max(1, $mesPendienteNumero);
-            
-            $mesSiguiente = $fechaMatricula->copy()->addMonths($mesPendienteNumero - 1);
-        }
-        
-        $mesNombre = $this->getNombreMes($mesSiguiente);
-        
-        return [
-            'mes_numero' => $mesPendienteNumero,
-            'mes_nombre' => $mesNombre,
-            'ultimo_mes_pagado' => $ultimoPago->mes_pagado ?? null,
-            'fecha_pendiente' => $mesSiguiente,
-        ];
-    }
-        
     private function calcularNumeroMesDesdeInicio($fechaInicio, $fechaMes)
     {
         $meses = $fechaInicio->diffInMonths($fechaMes) + 1;
