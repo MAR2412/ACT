@@ -58,7 +58,7 @@ class Usuarios extends Component
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
-        return view('livewire.Usuario.usuarios', compact('users'))
+        return view('livewire.usuario.usuarios', compact('users'))
             ->layout('layouts.app');
     }
 
