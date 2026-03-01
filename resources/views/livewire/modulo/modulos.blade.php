@@ -164,6 +164,16 @@
                                                 </svg>
                                             </button>
                                         @endcan
+                                        
+                                        @can('matriculas.ver')
+                                            <button wire:click="showStudents({{ $modulo->id }})"
+                                                class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                title="Ver estudiantes matriculados">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                                </svg>
+                                            </button>
+                                        @endcan
                                         @can('oferta-educativa.modulos.eliminar')
                                             <button wire:click="confirmDelete({{ $modulo->id }})"
                                                 class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
@@ -223,6 +233,15 @@
                                                     <path fill-rule="evenodd"
                                                         d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
                                                         clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        @endcan
+                                        @can('matriculas.ver')
+                                            <button wire:click="showStudents({{ $modulo->id }})"
+                                                class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                title="Ver estudiantes matriculados">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                                 </svg>
                                             </button>
                                         @endcan
@@ -327,4 +346,5 @@
     @include('livewire.modulo.create')
     @include('livewire.modulo.delete-confirmation')
     @include('livewire.modulo.error-modal')
+    <livewire:modulo.estudiantes-matriculados />
 </div>

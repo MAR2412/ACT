@@ -59,7 +59,10 @@ class Modulos extends Component
         $this->fecha_inicio = date('Y-m-d');
         $this->cargarDatosFiltros();
     }
-    
+    public function showStudents($moduloId)
+    {
+        $this->dispatch('showStudents', moduloId: $moduloId);
+    }
     public function render()
     {
         $modulos = Modulo::with(['sede', 'modalidad', 'seccion', 'moduloRequerido'])
