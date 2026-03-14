@@ -88,7 +88,80 @@ class Matriculas extends Component
             ->orderBy('orden')
             ->get();
     }
+    public function generarReciboFiniquito($matriculaId)
+    {
+        try {
+            $matricula = Matricula::with(['estudiante', 'modulo', 'pagos' => function($query) {
+                $query->orderBy('fecha_pago');
+            }])->findOrFail($matriculaId);
 
+            if ($matricula->saldo_pendiente > 0) {
+                $this->dispatch('notify', [
+                    'type' => 'error',
+                    'message' => 'No se puede generar el finiquito porque el módulo no está completamente pagado.'
+                ]);
+                return;
+            }
+
+            if (!$matricula->aprobado) {
+                $this->dispatch('notify', [
+                    'type' => 'warning',
+                    'message' => 'El estudiante no ha sido marcado como aprobado. ¿Desea continuar?'
+                ]);
+            }
+            $totalPagado = $matricula->pagos->sum('monto_pagado');
+
+            $ultimoPago = $matricula->pagos->last();
+
+            $data = [
+                'matricula' => $matricula,
+                'estudiante' => $matricula->estudiante,
+                'modulo' => $matricula->modulo,
+                'pagos' => $matricula->pagos,
+                'totalPagado' => $totalPagado,
+                'ultimoPago' => $ultimoPago,
+                'fecha' => now('America/Tegucigalpa')->format('d/m/Y'),
+                'hora' => now('America/Tegucigalpa')->format('h:i A'),
+            ];
+
+            $pdf = Pdf::loadView('pdf.recibo-finiquito', $data);
+            
+
+            $pdf->setPaper('letter', 'portrait');
+            $pdf->setOptions([
+                'defaultFont' => 'Helvetica',
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true
+            ]);
+
+            $nombreArchivo = 'FINIQUITO_' . 
+                            str_replace(' ', '_', $matricula->estudiante->nombre) . '_' .
+                            str_replace(' ', '_', $matricula->modulo->nombre) . '_' .
+                            now()->format('Ymd_His') . '.pdf';
+
+            LogService::activity(
+                'generar_finiquito',
+                'Matrículas',
+                "Se generó recibo de finiquito para matrícula #{$matricula->id}",
+                [
+                    'Generado por' => Auth::user()->email,
+                    'Estudiante' => $matricula->estudiante->nombre . ' ' . $matricula->estudiante->apellido,
+                    'Módulo' => $matricula->modulo->nombre,
+                    'Total pagado' => 'L. ' . number_format($totalPagado, 2),
+                ]
+            );
+
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->stream();
+            }, $nombreArchivo);
+
+        } catch (\Exception $e) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Error al generar el recibo: ' . $e->getMessage()
+            ]);
+        }
+    }
     public function abrirModalCamiseta($matriculaId)
     {
         $this->matriculaSeleccionada = Matricula::with('estudiante')->find($matriculaId);
