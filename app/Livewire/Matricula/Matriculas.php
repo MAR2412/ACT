@@ -1447,11 +1447,12 @@ public $monto_mensual_sin_descuento, $monto_primer_mes_con_descuento ;
         $this->sortField = $field;
     }
     
-    public function downloadPdf($moduloId)
+   public function downloadPdf($moduloId)
     {
         $modulo = Modulo::with(['sede', 'modalidad'])->findOrFail($moduloId);
 
         $matriculas = Matricula::where('modulo_id', $moduloId)
+            ->has('estudiante')
             ->with('estudiante')
             ->get()
             ->sort(function ($a, $b) {
