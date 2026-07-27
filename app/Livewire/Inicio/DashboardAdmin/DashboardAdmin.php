@@ -145,7 +145,7 @@ class DashboardAdmin extends Component
                 
                 $dias = $fechaProximoPago->diffInDays($hoy, false);
                 
-                $telefonoDestino = $matricula->estudiante->telefono;
+                $telefonoDestino = $matricula->estudiante?->telefono ?? $matricula->estudiante?->telefono_tutor ?? '';
                 $destino = 'estudiante';
                 
                 if (!empty($matricula->estudiante->telefono_tutor)) {
