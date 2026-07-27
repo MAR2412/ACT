@@ -288,7 +288,7 @@
                                 <div class="text-stone-600 dark:text-stone-400">
                                     <span class="font-medium">Modalidad:</span><br>
                                     {{ $modulo->modalidad->nombre }}<br>
-                                    <span class="font-medium">Sección:</span> {{ $modulo->seccion->nombre }}
+                                    <span class="font-medium">Sección:</span> {{ $modulo->seccion->nombre ?? 'N/A' }}
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-2 text-sm mb-3">
