@@ -103,9 +103,9 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-stone-900 dark:text-stone-300">
                                 <div class="text-sm">
-                                    <span class="font-medium">Modalidad:</span> {{ $modulo->modalidad->nombre }}<br>
-                                    <span class="font-medium">Sección:</span> {{ $modulo->seccion->nombre }}<br>
-                                    <span class="font-medium">Duración:</span> {{ $modulo->duracion_meses }} meses<br>
+                                    <span class="font-medium">Modalidad:</span> {{ $modulo->modalidad->nombre ?? 'N/A'}}<br>
+                                    <span class="font-medium">Sección:</span> {{ $modulo->seccion?->nombre ?? 'N/A' }}<br>
+                                    <span class="font-medium">Duración:</span> {{ $modulo->duracion_meses }} meses ?? 'N/A'<br>
                                     @if($modulo->moduloRequerido)
                                         <span class="font-medium">Requiere:</span> {{ $modulo->moduloRequerido->nombre }}
                                     @endif
